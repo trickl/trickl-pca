@@ -1,24 +1,27 @@
 Introduction
 ============
-This is a Java library that ...
+This is a Java library that provides some algorithms to efficiently perform principal component analysis.
 
 Downloads
 =========
-The library can be downloaded as a binary or source package from [https://github.com/gemstonetiger/trickl-matrix/downloads](https://github.com/gemstonetiger/trickl-matrix/downloads "Distribution download page").
+The library can be downloaded as a binary or source package from [https://github.com/gemstonetiger/trickl-pca/downloads](https://github.com/gemstonetiger/trickl-pca/downloads "Distribution download page").
 
-The source can be also retrieved straight from the Git repository: `git clone git@github.com:gemstonetiger/trickl-matrix.git`.
+The source can be also retrieved straight from the Git repository: `git clone git@github.com:gemstonetiger/trickl-pca.git`.
 
 Features
 ========
+HallMarshallMartin - An incremental algorithm described by a paper by Hall, Marshall and Martin. Modified beyond the scope of that paper to work efficienttly on sparse matrices.
+SVDPCA - A standard batch algorithm for PCA that requires a Singular Value Decomposition solver.
+SkocajLeonardis - An incremental algorithm that allows each input to have a temporal weight, based on a paper by Skocaj and Leonardis.
 
 Requirements
 ------------
+Depends on the Colt matrix library.
 
 License and conditions of use
 =============================
-
-The wrapper program is available under GNU General Public License (see file `license-gpl.txt` in the distribution package for the text of the license).
+The program is available under GNU General Public License (see file `license-gpl.txt` in the distribution package for the text of the license).
 
 Example usage
 =============
-
+Some Junit tests are provided and should be used to consult usage.

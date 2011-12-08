@@ -26,8 +26,10 @@ import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.EigenvalueDecomposition;
 import cern.jet.math.Functions;
-import com.trickl.math.PairedPermutator;
+import com.trickl.math.ChainPermutator;
+import com.trickl.math.IntArrayPermutator;
 import com.trickl.math.Permutator;
+import com.trickl.math.StandardPermutator;
 import com.trickl.matrix.ModifiedGramSchmidt;
 import com.trickl.matrix.SparseUtils;
 import com.trickl.sort.QuickSort;
@@ -223,7 +225,7 @@ public class Basis {
       for (int i = 0, end = column.size(); i < end; ++i) {
          sortorder[i] = i;
       }
-      Permutator permutator = new PairedPermutator(sortorder);
+      Permutator permutator = new ChainPermutator(new IntArrayPermutator(sortorder), new StandardPermutator());
       sorter.setPermutator(permutator);
       sorter.sort(column.toArray(), 0, column.size());
    }

@@ -30,8 +30,10 @@ import cern.colt.matrix.impl.SparseDoubleMatrix2D;
 import cern.colt.matrix.linalg.EigenvalueDecomposition;
 import cern.colt.matrix.linalg.LUDecomposition;
 import cern.jet.math.Functions;
-import com.trickl.math.PairedPermutator;
+import com.trickl.math.ChainPermutator;
+import com.trickl.math.IntArrayPermutator;
 import com.trickl.math.Permutator;
+import com.trickl.math.StandardPermutator;
 import com.trickl.matrix.GramSchmidtCoefficients;
 import com.trickl.matrix.SparseMult2DFunction;
 import com.trickl.matrix.SparseUtils;
@@ -139,7 +141,7 @@ public class HallMarshallMartin implements EigenspaceModel {
       for (int i = 0, end = eigenvalues.size(); i < end; ++i) {
          sortorder[i] = i;
       }
-      Permutator permutator = new PairedPermutator(sortorder);
+      Permutator permutator = new ChainPermutator(new IntArrayPermutator(sortorder), new StandardPermutator());
       sorter.setPermutator(permutator);
       sorter.sort(eigenvalues.toArray(), 0, eigenvalues.size());
       ArrayUtils.reverse(sortorder);

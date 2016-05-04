@@ -69,7 +69,7 @@ public class HallMarshallMartin implements EigenspaceModel {
 
    /**
     *
-    * @param s The number of dimensions to embed
+    * @param s The number of dimensions to embeds
     * @param n The observation dimensionality
     */
    public HallMarshallMartin(int s, int n) {

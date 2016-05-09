@@ -20,7 +20,6 @@
  */
 package com.trickl.pca;
 
-import cern.colt.function.IntIntDoubleFunction;
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix1D;
@@ -37,46 +36,65 @@ import java.util.Arrays;
  */
 public class SVDPCA implements EigenspaceModel {
 
-   private DoubleMatrix2D covarianceEigenvectors;
+   private final DoubleMatrix2D covarianceEigenvectors;
 
-   private DoubleMatrix1D covarianceEigenvalues;
+   private final DoubleMatrix1D covarianceEigenvalues;
+   
+   private final double[] variableWeights;
 
-   private DoubleMatrix2D mean;
+   private final DoubleMatrix2D mean;
+   
+   private final DoubleMatrix2D variances;
 
    private int observationCount;
 
    private int rank;
-
-   /**
-    *
+   
+   /**    
     * @param input A rectangular matrix where #rows > #columns
     */
    public SVDPCA(DoubleMatrix2D input)
+   {
+      this(input, null);
+   }
+
+   /**    
+    * @param input A rectangular matrix where #rows > #columns
+    * @param variableWeights optional, when specified each variable is normalised (scaled
+    * for equal variance) and then scaled according to the weight. Apply weights of one to each 
+    * variable would standardise the data.
+    */
+   public SVDPCA(DoubleMatrix2D input, double[] variableWeights)
    {
       // If there are no rows in the input, the mean should have zero size
       // (as a non-zero size would imply a zero mean which is untrue).
       observationCount = input.rows();
       mean = input.like(input.rows() > 0 ? 1 : 0, input.columns());
+      variances = input.like(input.rows() > 0 ? 1 : 0, input.columns());
+      this.variableWeights = variableWeights;
 
       if (input.rows() > 0) {
+          
+         // Calculate the mean
          final double weight = 1. /  input.rows();
-         input.forEachNonZero(new IntIntDoubleFunction() {
-            @Override
-            public double apply(int first, int second, double value) {
-               mean.setQuick(0, second, mean.getQuick(0, second) + value * weight);
-               return value;
-            }
+         input.forEachNonZero((int first, int second, double value) -> {
+             mean.setQuick(0, second, mean.getQuick(0, second) + value * weight);
+             return value;
          });
-
+                  
          // Subtract the mean from the input
-         final DoubleMatrix2D centeredInput = input.like();
-         input.forEachNonZero(new IntIntDoubleFunction() {
-            @Override
-            public double apply(int first, int second, double value) {
-               centeredInput.setQuick(first, second, value - mean.getQuick(0, second));
-               return value;
-            }
+         DoubleMatrix2D centeredInput = getCenteredInput(input);
+         
+         // Calculate the variances
+         centeredInput.forEachNonZero((int first, int second, double value) -> {
+              variances.setQuick(0, second, variances.getQuick(0, second) + value * value);
+              return value;
          });
+         
+         // Apply scaling if required
+         if (this.variableWeights != null) {                          
+             centeredInput = getScaledInput(centeredInput);
+         }
 
          // Perform SVD on the centered input
          // See http://public.lanl.gov/mewall/kluwer2002.html for the relationship
@@ -97,16 +115,30 @@ public class SVDPCA implements EigenspaceModel {
       }
    }
    
-   private DoubleMatrix2D getMeanDifference(DoubleMatrix2D rhsMean) {      
-      DoubleMatrix2D centeredInput = rhsMean.copy();
-      for (int i = 0; i < rhsMean.rows(); ++i) {
+   private DoubleMatrix2D getCenteredInput(DoubleMatrix2D input) {      
+      DoubleMatrix2D centeredInput = input.copy();
+      for (int i = 0; i < input.rows(); ++i) {
          centeredInput.viewRow(i).assign(mean.viewRow(0), Functions.minus);
       }
       return centeredInput;
    }
    
+   private DoubleMatrix2D getScaledInput(DoubleMatrix2D centeredInput) {      
+      DoubleMatrix2D standardisedInput = centeredInput.copy();     
+      centeredInput.forEachNonZero((int first, int second, double value) -> {
+         standardisedInput.setQuick(first, second,
+                 (value * variableWeights[second]) / (Math.sqrt(variances.getQuick(0, second))));
+         return value;
+      });
+      
+      return standardisedInput;
+   }
+   
    public DoubleMatrix2D getEigenbasisCoordinates(DoubleMatrix2D input) {
-      DoubleMatrix2D centeredInput = getMeanDifference(input);
+      DoubleMatrix2D centeredInput = getCenteredInput(input);      
+      if (this.variableWeights != null) {
+          centeredInput = getScaledInput(centeredInput);
+      }
       return getPrecenteredEigenbasisCoordinates(centeredInput);
    }
    

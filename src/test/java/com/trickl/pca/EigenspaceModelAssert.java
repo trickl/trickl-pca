@@ -20,7 +20,6 @@
  */
 package com.trickl.pca;
 
-import com.trickl.pca.EigenspaceModel;
 import cern.colt.list.DoubleArrayList;
 import cern.colt.list.IntArrayList;
 import cern.colt.matrix.DoubleMatrix1D;

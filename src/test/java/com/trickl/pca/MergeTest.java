@@ -20,9 +20,6 @@
  */
 package com.trickl.pca;
 
-import com.trickl.pca.SVDPCA;
-import com.trickl.pca.EigenspaceModel;
-import com.trickl.pca.Basis;
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix1D;

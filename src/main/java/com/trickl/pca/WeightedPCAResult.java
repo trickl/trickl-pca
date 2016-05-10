@@ -25,10 +25,10 @@ import cern.colt.matrix.DoubleMatrix2D;
 
 public class WeightedPCAResult implements EigenspaceModel {
 
-   private DoubleMatrix1D covarianceEigenvalues;
-   private DoubleMatrix2D covarianceEigenvectors;
-   private DoubleMatrix2D mean;
-   private double weight;
+   private final DoubleMatrix1D covarianceEigenvalues;
+   private final DoubleMatrix2D covarianceEigenvectors;
+   private final DoubleMatrix2D mean;
+   private final double weight;
 
    public WeightedPCAResult(DoubleMatrix1D covarianceEigenvalues,
                             DoubleMatrix2D covarianceEigenvectors,

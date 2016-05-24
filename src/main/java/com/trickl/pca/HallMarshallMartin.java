@@ -89,13 +89,9 @@ public class HallMarshallMartin implements EigenspaceModel {
    @Override
    public DoubleMatrix2D getMean() {
       final DoubleMatrix2D meanVector = meanSum.like();
-      meanSum.forEachNonZero(new IntIntDoubleFunction() {
-
-         @Override
-         public double apply(int first, int second, double value) {
-            meanVector.setQuick(first, second, value / weight);
-            return value;
-         }
+      meanSum.forEachNonZero((int first, int second, double value) -> {
+          meanVector.setQuick(first, second, value / weight);
+          return value;
       });
 
       return meanVector;
@@ -115,15 +111,11 @@ public class HallMarshallMartin implements EigenspaceModel {
       if (covarianceEigenvectors.rows() != covarianceEigenvalues.size()) {
          // Copy data into a new matrix (avoid returning a view on a sparse matrix as it invalidates most performance improvements).
          final DoubleMatrix2D covarianceEigenvectorsCopy = covarianceEigenvectors.like(covarianceEigenvalues.size(), covarianceEigenvectors.columns());
-         covarianceEigenvectors.forEachNonZero(new IntIntDoubleFunction() {
-
-            @Override
-            public double apply(int first, int second, double value) {
-               if (first < covarianceEigenvectorsCopy.rows()) {
-                  covarianceEigenvectorsCopy.setQuick(first, second, value);
-               }
-               return value;
-            }
+         covarianceEigenvectors.forEachNonZero((int first, int second, double value) -> {
+             if (first < covarianceEigenvectorsCopy.rows()) {
+                 covarianceEigenvectorsCopy.setQuick(first, second, value);
+             }
+             return value;
          });
          covarianceEigenvectors = covarianceEigenvectorsCopy;
       }
@@ -148,28 +140,20 @@ public class HallMarshallMartin implements EigenspaceModel {
       return sortorder;
    }
 
-   private DoubleMatrix2D getMeanDifference(DoubleMatrix2D rhsMean) {
+   private DoubleMatrix2D getCenteredInput(DoubleMatrix2D rhsMean) {
       final DoubleMatrix2D meanDifference = rhsMean.like((meanSum.size() != 0 && rhsMean.size() != 0) ? 1 : 0,
               Math.max(meanSum.columns(), rhsMean.columns()));
       meanDifference.assign(0);
       if (meanDifference.size() != 0) {
          if (weight > 0) {
-            rhsMean.forEachNonZero(new IntIntDoubleFunction() {
-
-               @Override
-               public double apply(int first, int second, double value) {
-                  meanDifference.setQuick(first, second, (meanSum.getQuick(first, second) / weight) - value);
-                  return value;
-               }
+            rhsMean.forEachNonZero((int first, int second, double value) -> {
+                meanDifference.setQuick(first, second, (meanSum.getQuick(first, second) / weight) - value);
+                return value;
             });
          } else {
-            rhsMean.forEachNonZero(new IntIntDoubleFunction() {
-
-               @Override
-               public double apply(int first, int second, double value) {
-                  meanDifference.setQuick(first, second, -value);
-                  return value;
-               }
+            rhsMean.forEachNonZero((int first, int second, double value) -> {
+                meanDifference.setQuick(first, second, -value);
+                return value;
             });
          }
       }
@@ -178,7 +162,7 @@ public class HallMarshallMartin implements EigenspaceModel {
    }
 
    public DoubleMatrix2D getEigenbasisCoordinates(DoubleMatrix2D input) {
-      DoubleMatrix2D centeredInput = getMeanDifference(input);
+      DoubleMatrix2D centeredInput = getCenteredInput(input);
       return getPrecenteredEigenbasisCoordinates(centeredInput);
    }
 
@@ -216,7 +200,7 @@ public class HallMarshallMartin implements EigenspaceModel {
          // and has the added advantage of usually being
          // more statistically accurate if the missing values are simply unknown rather than zero.
          // O(s) where s is the number of non-zero elements in the input
-         final DoubleMatrix2D meanDifference = getMeanDifference(input);
+         final DoubleMatrix2D meanDifference = getCenteredInput(input);
 
          final int p = Math.min(s, covarianceEigenvalues.size());
 
@@ -250,28 +234,20 @@ public class HallMarshallMartin implements EigenspaceModel {
       double lhsWeight = weight;
 
       if (meanSum.size() > 0 || rhs.getEigenvalues().size() > 0) {
-         final DoubleMatrix2D meanDifference = getMeanDifference(rhsMean);
+         final DoubleMatrix2D meanDifference = getCenteredInput(rhsMean);
 
          final int p = Math.min(s, covarianceEigenvalues.size());
 
          // Consolidate the meanDifference and rhs eigenvectors into a single sparse matrix
          final DoubleMatrix2D meanDifferenceAndRhsEigenvectors =
                  rhsEigenvectors.like(meanDifference.rows() + rhsEigenvectors.rows(), meanDifference.columns());
-         meanDifference.forEachNonZero(new IntIntDoubleFunction() {
-
-            @Override
-            public double apply(int first, int second, double value) {
-               meanDifferenceAndRhsEigenvectors.setQuick(first, second, value);
-               return value;
-            }
+         meanDifference.forEachNonZero((int first, int second, double value) -> {
+             meanDifferenceAndRhsEigenvectors.setQuick(first, second, value);
+             return value;
          });
-         rhsEigenvectors.forEachNonZero(new IntIntDoubleFunction() {
-
-            @Override
-            public double apply(int first, int second, double value) {
-               meanDifferenceAndRhsEigenvectors.setQuick(first + meanDifference.rows(), second, value);
-               return value;
-            }
+         rhsEigenvectors.forEachNonZero((int first, int second, double value) -> {
+             meanDifferenceAndRhsEigenvectors.setQuick(first + meanDifference.rows(), second, value);
+             return value;
          });
 
          // Construct an orthonormal basis set than spans both eigenspace models
@@ -315,37 +291,29 @@ public class HallMarshallMartin implements EigenspaceModel {
 
       final DoubleMatrix2D gamma = new DenseDoubleMatrix2D(meanDifference.rows(), t);
       if (meanDifference.size() > 0) {
-         meanDifferenceAndRhsEigenvectors.forEachNonZero(new IntIntDoubleFunction() {
-
-            @Override
-            public double apply(int first, int second, double value) {
-               for (int hRow = 0; hRow < inputCoefficients.rows(); ++hRow) {
-                  double orthogonalNorm = inputCoefficients.getQuick(hRow, first) * value;
-                  gamma.setQuick(0, hRow, gamma.getQuick(0, hRow) + orthogonalNorm * meanDifference.getQuick(0, second));
-               }
-
-               return value;
-            }
+         meanDifferenceAndRhsEigenvectors.forEachNonZero((int first, int second, double value) -> {
+             for (int hRow = 0; hRow < inputCoefficients.rows(); ++hRow) {
+                 double orthogonalNorm = inputCoefficients.getQuick(hRow, first) * value;
+                 gamma.setQuick(0, hRow, gamma.getQuick(0, hRow) + orthogonalNorm * meanDifference.getQuick(0, second));
+             }
+             
+             return value;
          });
 
-         meanDifference.forEachNonZero(new IntIntDoubleFunction() {
-
-            @Override
-            public double apply(int first, int second, double value) {
-               for (int hRow = 0; hRow < rhsCoefficients.rows(); ++hRow) {
-                  double orthogonalNorm = 0;
-                  for (int i = 0; i < rhsCoefficients.columns(); ++i) {
+         meanDifference.forEachNonZero((int first, int second, double value) -> {
+             for (int hRow = 0; hRow < rhsCoefficients.rows(); ++hRow) {
+                 double orthogonalNorm = 0;
+                 for (int i = 0; i < rhsCoefficients.columns(); ++i) {
                      double covarianceEigenvectorValue = 0;
                      for (int j = 0; j < eigenspaceRotation.rows(); ++j) {
-                        covarianceEigenvectorValue += eigenspaceRotation.getQuick(j, i) * covarianceEigenvectorsUnrot.getQuick(j, second);
+                         covarianceEigenvectorValue += eigenspaceRotation.getQuick(j, i) * covarianceEigenvectorsUnrot.getQuick(j, second);
                      }
                      orthogonalNorm += rhsCoefficients.getQuick(hRow, i) * covarianceEigenvectorValue;
-                  }
-                  gamma.setQuick(0, hRow, gamma.getQuick(0, hRow) + orthogonalNorm * value);
-               }
-
-               return value;
-            }
+                 }
+                 gamma.setQuick(0, hRow, gamma.getQuick(0, hRow) + orthogonalNorm * value);
+             }
+             
+             return value;
          });
       }
 
@@ -368,25 +336,21 @@ public class HallMarshallMartin implements EigenspaceModel {
       // Set the middle term
       double rhsCovarianceWeight = rhsWeight / (lhsWeight + rhsWeight);
       final DoubleMatrix2D orthoCoefficients = new DenseDoubleMatrix2D(t, q);
-      rhsEigenvectors.forEachNonZero(new IntIntDoubleFunction() {
-
-         @Override
-         public double apply(int first, int second, double value) {
-            for (int hRow = 0; hRow < inputCoefficients.rows(); ++hRow) {
-               double orthogonalNorm = 0;
-               for (int i = 0; i < rhsCoefficients.columns(); ++i) {
+      rhsEigenvectors.forEachNonZero((int first, int second, double value) -> {
+          for (int hRow = 0; hRow < inputCoefficients.rows(); ++hRow) {
+              double orthogonalNorm = 0;
+              for (int i = 0; i < rhsCoefficients.columns(); ++i) {
                   for (int j = 0; j < eigenspaceRotation.rows(); ++j) {
-                     orthogonalNorm += rhsCoefficients.getQuick(hRow, i) * eigenspaceRotation.getQuick(j, i) * covarianceEigenvectorsUnrot.getQuick(j, second);
+                      orthogonalNorm += rhsCoefficients.getQuick(hRow, i) * eigenspaceRotation.getQuick(j, i) * covarianceEigenvectorsUnrot.getQuick(j, second);
                   }
-               }
-               for (int i = 0; i < inputCoefficients.columns(); ++i) {
+              }
+              for (int i = 0; i < inputCoefficients.columns(); ++i) {
                   orthogonalNorm += inputCoefficients.getQuick(hRow, i) * meanDifferenceAndRhsEigenvectors.getQuick(i, second);
-               }
-               orthoCoefficients.setQuick(hRow, first, orthoCoefficients.getQuick(hRow, first) + orthogonalNorm * value);
-            }
-
-            return value;
-         }
+              }
+              orthoCoefficients.setQuick(hRow, first, orthoCoefficients.getQuick(hRow, first) + orthogonalNorm * value);
+          }
+          
+          return value;
       });
 
       final DoubleMatrix2D eigenCoefficients = new DenseDoubleMatrix2D(p, q);
@@ -452,16 +416,12 @@ public class HallMarshallMartin implements EigenspaceModel {
       }
 
       final DoubleMatrix2D eigenspaceRotationShift = eigenspaceRotation.like();
-      rhsCoefficients.forEachNonZero(new IntIntDoubleFunction() {
-
-         @Override
-         public double apply(int first, int second, double value) {
-            for (int j = 0; j < eigenspaceRotation.rows(); ++j) {
-               eigenspaceRotationShift.setQuick(j, p + first, eigenspaceRotationShift.getQuick(j, p + first) + eigenspaceRotation.getQuick(j, second) * value);
-            }
-
-            return value;
-         }
+      rhsCoefficients.forEachNonZero((int first, int second, double value) -> {
+          for (int j = 0; j < eigenspaceRotation.rows(); ++j) {
+              eigenspaceRotationShift.setQuick(j, p + first, eigenspaceRotationShift.getQuick(j, p + first) + eigenspaceRotation.getQuick(j, second) * value);
+          }
+          
+          return value;
       });
       eigenspaceRotation.assign(eigenspaceRotationShift, Functions.plus);
 
@@ -481,16 +441,12 @@ public class HallMarshallMartin implements EigenspaceModel {
          final DoubleMatrix2D eigenspaceRotationInverse = lu.solve(DoubleFactory2D.dense.identity(eigenspaceRotation.rows()));
 
          // Add in all the inputs
-         meanDifferenceAndRhsEigenvectors.forEachNonZero(new IntIntDoubleFunction() {
-
-            @Override
-            public double apply(int first, int second, double value) {
-               for (int hRow = 0; hRow < inputCoefficients.rows(); ++hRow) {
-                  centeredInputRot.viewPart(0, second, centeredInputRot.rows(), 1).assign(
-                          eigenspaceRotationInverse.viewPart(hRow + p, 0, 1, centeredInputRot.rows()).viewDice(), Functions.plusMult(inputCoefficients.get(hRow, first) * value));
-               }
-               return value;
-            }
+         meanDifferenceAndRhsEigenvectors.forEachNonZero((int first, int second, double value) -> {
+             for (int hRow = 0; hRow < inputCoefficients.rows(); ++hRow) {
+                 centeredInputRot.viewPart(0, second, centeredInputRot.rows(), 1).assign(
+                         eigenspaceRotationInverse.viewPart(hRow + p, 0, 1, centeredInputRot.rows()).viewDice(), Functions.plusMult(inputCoefficients.get(hRow, first) * value));
+             }
+             return value;
          });
 
          covarianceEigenvectorsUnrot.assign(centeredInputRot, Functions.plus);
@@ -515,13 +471,9 @@ public class HallMarshallMartin implements EigenspaceModel {
          final DoubleMatrix2D inputsOffset = covarianceEigenvectorsUnrot.like();
          meanDifferenceAndRhsEigenvectors.forEachNonZero(new SparseMult2DFunction(inputCoefficients, inputs.viewDice(), true, true));
          
-         inputs.forEachNonZero(new IntIntDoubleFunction() {
-
-            @Override
-            public double apply(int first, int second, double value) {
-               inputsOffset.setQuick(first + p, second, value);
-               return value;
-            }
+         inputs.forEachNonZero((int first, int second, double value) -> {
+             inputsOffset.setQuick(first + p, second, value);
+             return value;
          });
 
          covarianceEigenvectors.assign(inputsOffset, Functions.plus);

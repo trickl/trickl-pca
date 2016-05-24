@@ -20,10 +20,6 @@
  */
 package com.trickl.pca;
 
-import com.trickl.pca.HallMarshallMartin;
-import com.trickl.pca.SVDPCA;
-import com.trickl.pca.EigenspaceModel;
-import cern.colt.function.IntIntDoubleFunction;
 import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
@@ -31,7 +27,6 @@ import cern.colt.matrix.impl.DenseDoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.impl.SparseDoubleMatrix2D;
 import cern.jet.math.Functions;
-import cern.jet.random.engine.MersenneTwister;
 import com.trickl.dataset.InclinedPlane3D;
 import com.trickl.dataset.SwissRoll3D;
 import com.trickl.matrix.SparseUtils;
@@ -45,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -105,7 +101,7 @@ public class HallMarshallMartinTest {
 
       // Use the swiss roll generator to create a noisy curved plane
       SwissRoll3D swissRoll = new SwissRoll3D();
-      swissRoll.setRandomEngine(new MersenneTwister(123456789));
+      swissRoll.setRandomGenerator(new MersenneTwister(123456789));
       swissRoll.setNormal(normal);
       swissRoll.setRevolutions(0.3);
       DoubleMatrix2D data = swissRoll.generate(100);
@@ -141,7 +137,7 @@ public class HallMarshallMartinTest {
 
       // Use the swiss roll generator to create a noisy curved plane
       SwissRoll3D swissRoll = new SwissRoll3D();
-      swissRoll.setRandomEngine(new MersenneTwister(123456789));
+      swissRoll.setRandomGenerator(new MersenneTwister(123456789));
       swissRoll.setNormal(normal);
       swissRoll.setRevolutions(0.3);
       DoubleMatrix2D data = swissRoll.generate(100);
@@ -180,7 +176,7 @@ public class HallMarshallMartinTest {
       normal.assign(new double[]{.0, .0, 1.0});
 
       InclinedPlane3D inclinedPlane = new InclinedPlane3D();
-      inclinedPlane.setRandomEngine(new MersenneTwister(123456789));
+      inclinedPlane.setRandomGenerator(new MersenneTwister(123456789));
       inclinedPlane.setNormal(normal);
       inclinedPlane.setBounds(new Rectangle(-5, -5, 10, 10));
       inclinedPlane.setNoiseStd(0.5);
@@ -203,7 +199,7 @@ public class HallMarshallMartinTest {
       normal.assign(new double[]{.0, .0, 1.0});
 
       InclinedPlane3D inclinedPlane = new InclinedPlane3D();
-      inclinedPlane.setRandomEngine(new MersenneTwister(123456789));
+      inclinedPlane.setRandomGenerator(new MersenneTwister(123456789));
       inclinedPlane.setNormal(normal);
       inclinedPlane.setBounds(new Rectangle(-5, -5, 10, 10));
       inclinedPlane.setNoiseStd(0.5);
@@ -230,7 +226,7 @@ public class HallMarshallMartinTest {
       normal.assign(new double[]{.0, .0, 1.0});
 
       InclinedPlane3D inclinedPlane = new InclinedPlane3D();
-      inclinedPlane.setRandomEngine(new MersenneTwister(123456789));
+      inclinedPlane.setRandomGenerator(new MersenneTwister(123456789));
       inclinedPlane.setNormal(normal);
       inclinedPlane.setBounds(new Rectangle(-5, -5, 10, 10));
       inclinedPlane.setNoiseStd(0.5);
@@ -257,7 +253,7 @@ public class HallMarshallMartinTest {
       normal.assign(new double[]{.0, .0, 1.0});
 
       InclinedPlane3D inclinedPlane = new InclinedPlane3D();
-      inclinedPlane.setRandomEngine(new MersenneTwister(123456789));
+      inclinedPlane.setRandomGenerator(new MersenneTwister(123456789));
       inclinedPlane.setNormal(normal);
       inclinedPlane.setBounds(new Rectangle(-5, -5, 10, 10));
       inclinedPlane.setNoiseStd(0.5);
@@ -293,7 +289,7 @@ public class HallMarshallMartinTest {
       normal.assign(new double[]{.0, .0, 1.0});
 
       InclinedPlane3D inclinedPlane = new InclinedPlane3D();
-      inclinedPlane.setRandomEngine(new MersenneTwister(123456789));
+      inclinedPlane.setRandomGenerator(new MersenneTwister(123456789));
       inclinedPlane.setNormal(normal);
       inclinedPlane.setBounds(new Rectangle(-5, -5, 10, 10));
       inclinedPlane.setNoiseStd(0.5);
@@ -312,7 +308,7 @@ public class HallMarshallMartinTest {
       DoubleMatrix2D eigenvectors = pca.getEigenvectors();
       DoubleMatrix2D eigenvectorsCrossProduct = eigenvectors.like(eigenvectors.rows(), eigenvectors.rows());
       SparseUtils.zMult((SparseDoubleMatrix2D) eigenvectors, eigenvectors, eigenvectorsCrossProduct, false, true);
-      MatrixAssert.assertEquals(DoubleFactory2D.dense.identity(eigenvectors.rows()), eigenvectorsCrossProduct, 1e-3);
+      MatrixAssert.assertEquals(DoubleFactory2D.dense.identity(eigenvectors.rows()), eigenvectorsCrossProduct, 1e-2);
 
       System.out.println("Eigenvalues:");
       System.out.println(pca.getEigenvalues());
@@ -331,7 +327,7 @@ public class HallMarshallMartinTest {
 
       int totalFilms = 25;
       int totalFields = 100000;
-      Map<Integer, String> filmTitles = new HashMap<Integer, String>();
+      Map<Integer, String> filmTitles = new HashMap<>();
       DoubleMatrix2D spatialWeights = new SparseDoubleMatrix2D(totalFilms, totalFields);
       DoubleMatrix2D data = new SparseDoubleMatrix2D(totalFilms, totalFields);
       List<Integer> filmIds = loadFilmData(totalFilms, data, spatialWeights, filmTitles);
@@ -364,7 +360,7 @@ public class HallMarshallMartinTest {
 
       int totalFilms = 1000;
       int totalFields = 100000;
-      Map<Integer, String> filmTitles = new HashMap<Integer, String>();
+      Map<Integer, String> filmTitles = new HashMap<>();
       DoubleMatrix2D spatialWeights = new SparseDoubleMatrix2D(totalFilms, totalFields);
       SparseDoubleMatrix2D data = new SparseDoubleMatrix2D(totalFilms, totalFields);
       List<Integer> filmIds = loadFilmData(totalFilms, data, spatialWeights, filmTitles);
@@ -400,7 +396,7 @@ public class HallMarshallMartinTest {
 
       int totalFilms = 25;
       int totalFields = 100000;
-      Map<Integer, String> filmTitles = new HashMap<Integer, String>();
+      Map<Integer, String> filmTitles = new HashMap<>();
       DoubleMatrix2D spatialWeights = new SparseDoubleMatrix2D(totalFilms, totalFields);
       SparseDoubleMatrix2D data = new SparseDoubleMatrix2D(totalFilms, totalFields);
       List<Integer> filmIds = loadFilmData(totalFilms, data, spatialWeights, filmTitles);
@@ -435,29 +431,29 @@ public class HallMarshallMartinTest {
 
     private List<Integer> loadFilmData(int totalFilms, DoubleMatrix2D data, DoubleMatrix2D spatialWeights, Map<Integer, String> itemIdToLabel) throws IOException {
 
-      HashMap<Integer, Integer> itemIdToIndex = new HashMap<Integer, Integer>();
-      List<Integer> ids = new LinkedList<Integer>();      
+      HashMap<Integer, Integer> itemIdToIndex = new HashMap<>();
+      List<Integer> ids = new LinkedList<>();      
       URL labelFile = this.getClass().getResource("item-titles.dat");
 
-      // Read the label file
-      LineNumberReader labelReader = new LineNumberReader(new InputStreamReader(labelFile.openStream()));
-      Pattern labelLinePattern = Pattern.compile("^(\\d+)(\\s+)(.*)$");
-      for (String dataLine = labelReader.readLine();
-              dataLine != null && itemIdToLabel.size() < totalFilms;
-              dataLine = labelReader.readLine()) {
-         Matcher matcher = labelLinePattern.matcher(dataLine);
-         if (matcher.matches()) {
-            try {
-               int itemId = Integer.parseInt(matcher.group(1));
-               String label = matcher.group(3);
-               itemIdToLabel.put(itemId, label);
-            } catch (NumberFormatException ex) {
-               System.err.println("Line " + labelReader.getLineNumber() + " could not be parsed in file " + labelFile);
-            }
-         }
-      }
-      totalFilms = labelReader.getLineNumber() - 1;
-      labelReader.close();
+       try ( // Read the label file
+               LineNumberReader labelReader = new LineNumberReader(new InputStreamReader(labelFile.openStream()))) {
+           Pattern labelLinePattern = Pattern.compile("^(\\d+)(\\s+)(.*)$");
+           for (String dataLine = labelReader.readLine();
+                   dataLine != null && itemIdToLabel.size() < totalFilms;
+                   dataLine = labelReader.readLine()) {
+               Matcher matcher = labelLinePattern.matcher(dataLine);
+               if (matcher.matches()) {
+                   try {
+                       int itemId = Integer.parseInt(matcher.group(1));
+                       String label = matcher.group(3);
+                       itemIdToLabel.put(itemId, label);
+                   } catch (NumberFormatException ex) {
+                       System.err.println("Line " + labelReader.getLineNumber() + " could not be parsed in file " + labelFile);
+                   }
+               }
+           }
+           totalFilms = labelReader.getLineNumber() - 1;
+       }
 
       spatialWeights.ensureCapacity(totalFilms * 100);
       URL dataFile = this.getClass().getResource("item-vector.dat");
@@ -498,18 +494,14 @@ public class HallMarshallMartinTest {
    }
 
    private Map<Integer, DoubleMatrix2D> segmentData(final List<Integer> ids, DoubleMatrix2D data) {
-      final Map<Integer, DoubleMatrix2D> rows = new HashMap<Integer, DoubleMatrix2D>();
-      for (int id : ids) {
-         rows.put(id, data.like(1, data.columns()));
-      }
-      data.forEachNonZero(new IntIntDoubleFunction() {
-
-         @Override
-         public double apply(int first, int second, double value) {
-            DoubleMatrix2D row = rows.get(ids.get(first));
-            row.setQuick(0, second, value);
-            return value;
-         }
+      final Map<Integer, DoubleMatrix2D> rows = new HashMap<>();
+      ids.stream().forEach((id) -> {
+          rows.put(id, data.like(1, data.columns()));
+       });
+      data.forEachNonZero((int first, int second, double value) -> {
+          DoubleMatrix2D row = rows.get(ids.get(first));
+          row.setQuick(0, second, value);
+          return value;
       });
 
       return rows;
@@ -536,28 +528,27 @@ public class HallMarshallMartinTest {
       File outputFile = new File("src/test/resources/"
               + packagePath
               + "/" + fileName);
-      PrintWriter writer = new PrintWriter(outputFile);
-      for (int i = 0; i < reconstruction.rows(); ++i) {
-         StringBuffer outputLine = new StringBuffer();
-         outputLine.append(reconstruction.getQuick(i, 0));
-         outputLine.append(' ');
-         outputLine.append(reconstruction.getQuick(i, 1));
-         outputLine.append(' ');
-         outputLine.append(reconstruction.getQuick(i, 2));
-         outputLine.append(" 0"); // Color index
-         writer.println(outputLine);
-      }
-      for (int i = 0; i < data.rows(); ++i) {
-         StringBuffer outputLine = new StringBuffer();
-         outputLine.append(data.getQuick(i, 0));
-         outputLine.append(' ');
-         outputLine.append(data.getQuick(i, 1));
-         outputLine.append(' ');
-         outputLine.append(data.getQuick(i, 2));
-         outputLine.append(" 10"); // Color index
-         writer.println(outputLine);
-      }
-      writer.close();
+       try (PrintWriter writer = new PrintWriter(outputFile)) {
+           for (int i = 0; i < reconstruction.rows(); ++i) {
+               StringBuffer outputLine = new StringBuffer();
+               outputLine.append(reconstruction.getQuick(i, 0));
+               outputLine.append(' ');
+               outputLine.append(reconstruction.getQuick(i, 1));
+               outputLine.append(' ');
+               outputLine.append(reconstruction.getQuick(i, 2));
+               outputLine.append(" 0"); // Color index
+               writer.println(outputLine);
+           }
+           for (int i = 0; i < data.rows(); ++i) {
+               StringBuffer outputLine = new StringBuffer();
+               outputLine.append(data.getQuick(i, 0));
+               outputLine.append(' ');
+               outputLine.append(data.getQuick(i, 1));
+               outputLine.append(' ');
+               outputLine.append(data.getQuick(i, 2));
+               outputLine.append(" 10"); // Color index
+               writer.println(outputLine);
+           }}
    }
 
    private void outputFilmEigenspaceToFile(String fileName, DoubleMatrix2D data, HallMarshallMartin pca, List<Integer> filmIds, Map<Integer, String> filmTitles) throws FileNotFoundException {
@@ -566,23 +557,23 @@ public class HallMarshallMartinTest {
       File outputFile = new File("src/test/resources/"
               + packagePath
               + "/" + fileName);
-      PrintWriter writer = new PrintWriter(outputFile);
-      Map<Integer, DoubleMatrix2D> dataRows = segmentData(filmIds, data);
-      for (int filmId : filmIds) {
-         DoubleMatrix2D coefficients = pca.getEigenbasisCoordinates(dataRows.get(filmId));
-
-         String itemLabel = filmTitles.get(filmId);
-         StringBuffer outputLine = new StringBuffer();
-         outputLine.append(coefficients.getQuick(0, 0));
-         outputLine.append(' ');
-         outputLine.append(coefficients.getQuick(0, 1));
-         if (itemLabel != null) {
-            outputLine.append(' ');
-            outputLine.append(itemLabel);
-         }
-         writer.println(outputLine);
-      }
-
-      writer.close();
+       try (PrintWriter writer = new PrintWriter(outputFile)) {
+           Map<Integer, DoubleMatrix2D> dataRows = segmentData(filmIds, data);
+           filmIds.stream().map((filmId) -> {
+               DoubleMatrix2D coefficients = pca.getEigenbasisCoordinates(dataRows.get(filmId));
+               String itemLabel = filmTitles.get(filmId);
+               StringBuffer outputLine = new StringBuffer();
+               outputLine.append(coefficients.getQuick(0, 0));
+               outputLine.append(' ');
+               outputLine.append(coefficients.getQuick(0, 1));
+               if (itemLabel != null) {
+                   outputLine.append(' ');
+                   outputLine.append(itemLabel);
+               }
+              return outputLine;
+          }).forEach((outputLine) -> {
+              writer.println(outputLine);
+          });
+}
    }
 }

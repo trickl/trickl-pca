@@ -27,12 +27,12 @@ import cern.colt.matrix.impl.DenseDoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.impl.SparseDoubleMatrix1D;
 import cern.jet.math.Functions;
-import cern.jet.random.engine.MersenneTwister;
 import com.trickl.dataset.InclinedPlane3D;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,7 +56,7 @@ public class SVDPCATest {
       normal.assign(new double[]{.0, .0, 1.0});
       
       InclinedPlane3D inclinedPlane = new InclinedPlane3D();
-      inclinedPlane.setRandomEngine(new MersenneTwister(123456789));
+      inclinedPlane.setRandomGenerator(new MersenneTwister(123456789));
       inclinedPlane.setNormal(normal);
       inclinedPlane.setBounds(new Rectangle(-5, -5, 10, 10));
       inclinedPlane.setNoiseStd(0.5);
